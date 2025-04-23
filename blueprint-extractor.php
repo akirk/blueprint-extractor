@@ -304,7 +304,7 @@ class BlueprintExtractor {
 		);
 
 		$blueprint = array(
-			'landingPage'         => '/',
+			'landingPage'         => get_option( 'blueprint_extractor_initial_landing_page', '/' ),
 			'preferredVersions'   => array(
 				'php' => substr( phpversion(), 0, 3 ),
 				'wp'  => $wp_version,
@@ -369,6 +369,8 @@ class BlueprintExtractor {
 					color: #fff;
 				}
 			</style>
+
+			Landing Page: <input type="text" id="landing-page" value="<?php echo esc_attr( $blueprint['landingPage'] ); ?>" onchange="updateBlueprint()" onkeyup="updateBlueprint()" /><br>
 
 			<details id="select-pages">
 				<summary>Pages <span class="checked"></span></summary>
@@ -631,6 +633,7 @@ class BlueprintExtractor {
 
 				function updateBlueprint() {
 					let blueprint = JSON.parse( originaBlueprint );
+					blueprint.landingPage = document.getElementById('landing-page').value;
 					if ( document.getElementById('zip-url').value ) {
 						blueprint.steps.push( {
 							'step'          : 'unzip',
@@ -799,6 +802,7 @@ class BlueprintExtractor {
 							'options' : {
 								'blueprint_extractor_initial_constants' : constants,
 								'blueprint_extractor_initial_options' : additionalOptions,
+								'blueprint_extractor_initial_landing_page' : document.getElementById('landing-page').value,
 								'blueprint_extractor_default_checked': true,
 							}
 						} );
