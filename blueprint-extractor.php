@@ -493,7 +493,8 @@ class BlueprintExtractor {
 
 			<details id="select-theme">
 				<summary>Theme</summary>
-				<label><input type="checkbox" id="ignore-theme" onclick="updateBlueprint()"> Use Default Theme</label><br>
+				<label><input type="radio" name="ignore_theme" id="ignore-theme" onclick="updateBlueprint()"> Use Default Theme</label><br>
+				<label><input type="radio" name="ignore_theme" checked onclick="updateBlueprint()"> Use Current Theme: <?php echo esc_html( wp_get_theme() ); ?></label><br>
 			</details>
 			<details id="select-users">
 				<summary>Users <span class="checked"></span></summary>
@@ -674,6 +675,7 @@ class BlueprintExtractor {
 							}
 						}
 						if ( blueprint.steps[i].step === 'installTheme' ) {
+
 							if ( document.getElementById('ignore-theme').checked ) {
 								localStorage.setItem( 'blueprint_extractor_ignore_theme', true );
 								continue;
@@ -914,7 +916,6 @@ class BlueprintExtractor {
 				} );
 				document.addEventListener('click', function (event) {
 					if ( event.target.matches('.plugin-option') ) {
-						event.preventDefault();
 						if ( event.target.checked ) {
 							addOptionToBlueprint( event.target.value );
 						} else {
