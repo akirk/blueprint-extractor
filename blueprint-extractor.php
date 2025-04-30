@@ -379,7 +379,7 @@ class BlueprintExtractor {
 				}
 			</style>
 			<form target="_blank" action="https://blueprintlibrary.wordpress.com/" method="post">
-			Name: <input type="text" id="blueprint-name" name="name" value="<?php echo esc_attr( $name ); ?>" /><br>
+			Name: <input type="text" id="blueprint-name" name="name" value="<?php echo esc_attr( $name ); ?>" class="regular-text" /><br>
 			Landing Page: <input type="text" id="landing-page" value="<?php echo esc_attr( $blueprint['landingPage'] ); ?>" onchange="updateBlueprint()" onkeyup="updateBlueprint()" /><br>
 
 			<details id="select-pages">
