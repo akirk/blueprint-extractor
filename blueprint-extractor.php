@@ -23,6 +23,8 @@ class BlueprintExtractor {
 	public function __construct() {
 		add_action( 'init', array( $this, 'init' ) );
 		add_action( 'admin_menu', array( $this, 'add_admin_menu' ) );
+		// add a button to the master bar so that you can quickly get to the blueprint page
+		add_action( 'admin_bar_menu', array( $this, 'add_admin_bar_button' ), 100 );
 	}
 
 	public function get_plugin_resource( $slug ) {
@@ -369,7 +371,7 @@ class BlueprintExtractor {
 					color: #fff;
 				}
 			</style>
-			<form action="https://blueprintlibrary.wordpress.com/" method="post">
+			<form target="_blank" action="https://blueprintlibrary.wordpress.com/" method="post">
 			Landing Page: <input type="text" id="landing-page" value="<?php echo esc_attr( $blueprint['landingPage'] ); ?>" onchange="updateBlueprint()" onkeyup="updateBlueprint()" /><br>
 
 			<details id="select-pages">
@@ -513,7 +515,7 @@ class BlueprintExtractor {
 			</details>
 
 			<br>
-			→ <a id="playground-link" href="https://playground.wordpress.net/#<?php echo esc_attr( str_replace( '%', '%25', wp_json_encode( $blueprint, JSON_UNESCAPED_SLASHES ) ) ); ?>" target="_blank">Open a new WordPress Playground with the blueprint below</a>
+			→ <a id="playground-link" href="https://playground.wordpress.net/?blueprint-url=data:application/json;base64,<?php echo esc_attr( base64_encode( wp_json_encode( $blueprint, JSON_UNESCAPED_SLASHES ) ) ); ?>" target="_blank">Open a new WordPress Playground with the blueprint below</a>
 			&nbsp;<label><input type="checkbox" id="include-blueprint-extractor" checked onchange="updateBlueprint()" />Include the Blueprint Extractor plugin</label>
 			<br/>
 			<br/>
@@ -1084,6 +1086,15 @@ class BlueprintExtractor {
 				echo 'Failed to create ZIP file.';
 			}
 		}
+	}
+
+	public function add_admin_bar_button() {
+		global $wp_admin_bar;
+		$wp_admin_bar->add_menu( array(
+			'id'    => 'blueprint-extractor',
+			'title' => 'Blueprint',
+			'href'  => admin_url( 'admin.php?page=blueprint' ),
+		) );
 	}
 }
 
