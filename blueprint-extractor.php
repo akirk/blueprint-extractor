@@ -326,6 +326,13 @@ class BlueprintExtractor {
 		$blueprint = $this->generate_blueprint();
 
 		$checked = get_option( 'blueprint_extractor_default_checked' ) ? ' checked' : '';
+		$name = get_option( 'blueprint_extractor_name', get_bloginfo( 'name' ) );
+
+		if ( preg_match( '/\d+$/', $name, $m ) ) {
+			$name = preg_replace( '/\d+$/', $m[0] + 1, $name );
+		} else {
+			$name .= ' V2';
+		}
 
 		?><div class="wrap">
 		<h1>Blueprint</h1>
@@ -372,6 +379,7 @@ class BlueprintExtractor {
 				}
 			</style>
 			<form target="_blank" action="https://blueprintlibrary.wordpress.com/" method="post">
+			Name: <input type="text" id="blueprint-name" name="name" value="<?php echo esc_attr( $name ); ?>" /><br>
 			Landing Page: <input type="text" id="landing-page" value="<?php echo esc_attr( $blueprint['landingPage'] ); ?>" onchange="updateBlueprint()" onkeyup="updateBlueprint()" /><br>
 
 			<details id="select-pages">
@@ -808,6 +816,7 @@ class BlueprintExtractor {
 								'blueprint_extractor_initial_options' : additionalOptions,
 								'blueprint_extractor_initial_landing_page' : document.getElementById('landing-page').value,
 								'blueprint_extractor_default_checked': true,
+								'blueprint_extractor_name': document.getElementById('blueprint-name').value,
 							}
 						} );
 					}
