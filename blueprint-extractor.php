@@ -369,7 +369,7 @@ class BlueprintExtractor {
 					color: #fff;
 				}
 			</style>
-
+			<form action="https://blueprintlibrary.wordpress.com/" method="post">
 			Landing Page: <input type="text" id="landing-page" value="<?php echo esc_attr( $blueprint['landingPage'] ); ?>" onchange="updateBlueprint()" onkeyup="updateBlueprint()" /><br>
 
 			<details id="select-pages">
@@ -518,11 +518,13 @@ class BlueprintExtractor {
 			<br/>
 			<br/>
 			<button id="copy-blueprint" class="button">Copy the blueprint to clipboard</button>
+			<button class="button">Submit the blueprint to WordPress.com</button>
 			<button id="clear-local-storage" class="button button-destructive" style="margin-left: 10em">Reset Previous Selections</button>
 			<br>
 			<br>
 
-			<textarea id="blueprint" cols="120" rows="50" style="font-family: monospace"><?php echo esc_html( wp_json_encode( $blueprint, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT ) ); ?></textarea>
+			<textarea id="blueprint" name="blueprint" cols="120" rows="50" style="font-family: monospace"><?php echo esc_html( wp_json_encode( $blueprint, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT ) ); ?></textarea>
+			</form>
 			<script>
 				const originaBlueprint = document.getElementById('blueprint').value;
 				function encodeStringAsBase64(str) {
@@ -993,6 +995,12 @@ class BlueprintExtractor {
 					setTimeout(function () {
 						event.target.textContent = 'Copy the blueprint to clipboard';
 					}, 2000);
+				});
+				document.getElementById('submit-blueprint').addEventListener('click', function (event) {
+					event.preventDefault();
+					const blueprint = document.getElementById('blueprint').value;
+
+
 				});
 				document.getElementById('clear-local-storage').addEventListener('click', function (event) {
 					event.preventDefault();
