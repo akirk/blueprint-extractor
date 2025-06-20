@@ -302,7 +302,7 @@ class BlueprintExtractor {
 
 		$steps[] = array(
 			'step' => 'runPHP',
-			'code' => '<' . '?php require_once \'wordpress/wp-load.php\'; foreach ( array( \'post\', \'page\', \'attachment\', \'revision\', \'nav_menu_item\' ) as $post_type ) { $posts = get_posts( array(\'posts_per_page\' => -1, \'post_type\' => $post_type ) ); foreach ($posts as $post) wp_delete_post($post->ID, true); }',
+			'code' => '<' . '?php require_once \'/wordpress/wp-load.php\'; foreach ( array( \'post\', \'page\', \'attachment\', \'revision\', \'nav_menu_item\' ) as $post_type ) { $posts = get_posts( array(\'posts_per_page\' => -1, \'post_type\' => $post_type ) ); foreach ($posts as $post) wp_delete_post($post->ID, true); }',
 		);
 
 		$blueprint = array(
@@ -385,7 +385,7 @@ class BlueprintExtractor {
 			<details id="select-pages">
 				<summary>Pages <span class="checked"></span></summary>
 					<?php foreach ( get_pages( array() ) as $page ) : ?>
-					<label><input type="checkbox" <?php echo $checked; ?> data-id="<?php echo esc_attr( $page->ID ); ?>" onchange="updateBlueprint()" onkeyup="updateBlueprint()" data-post_title="<?php echo esc_attr( $page->post_title ); ?>" data-post_content="<?php echo esc_attr( str_replace( PHP_EOL, '\n', $page->post_content ) ); ?>" /> <?php echo esc_html( $page->post_title ); ?></label><br/>
+					<label><input type="checkbox" <?php echo $checked; ?> data-id="<?php echo esc_attr( $page->ID ); ?>" onchange="updateBlueprint()" onkeyup="updateBlueprint()" data-post_name="<?php echo esc_attr( $page->post_name ); ?>" data-post_type="<?php echo esc_attr( $page->post_type ); ?>" data-post_title="<?php echo esc_attr( $page->post_title ); ?>" data-post_content="<?php echo esc_attr( str_replace( PHP_EOL, '\n', $page->post_content ) ); ?>" /> <?php echo esc_html( $page->post_title ); ?></label><br/>
 				<?php endforeach; ?>
 			</details>
 
@@ -417,8 +417,52 @@ class BlueprintExtractor {
 								'term'        => wp_get_theme()->get_stylesheet(),
 							)
 						) as $template_part ) :
+							$references = array();
+							$nav_items = array();
+							preg_match_all( '#<!-- wp:navigation\s+(.*?) /-->#', $template_part->post_content, $matches );
+							foreach ( $matches[1] as $match ) {
+								$match = json_decode( $match, true );
+								if ( isset( $match['ref'] ) && is_numeric( $match['ref'] ) ) {
+									$reference_id = count( $references );
+									$p = get_post( $match['ref'] );
+
+									if ( ! $p ) {
+										continue;
+									}
+
+									preg_match_all( '#<!-- wp:navigation-link\s+(.*?) /-->#', $p->post_content, $nav_matches );
+									foreach ( $nav_matches[1] as $nav_match ) {
+										$nav_match = json_decode( $nav_match, true );
+										if ( isset( $nav_match['id'] ) && is_numeric( $nav_match['id'] ) ) {
+											$nav_item = get_post( $nav_match['id'] );
+											if ( $nav_item ) {
+												$nav_items[ $nav_item->ID ] = array( $nav_item->post_name, $nav_item->post_type );
+												$p->post_content = str_replace(
+													$nav_match['id'],
+													'NAV_ITEM_' . $nav_item->ID,
+													$p->post_content
+												);
+											}
+										}
+									}
+
+
+									$references[ $reference_id ] = array(
+										'id'           => $match['ref'],
+										'post_title'   => $p->post_title,
+										'post_content' => $p->post_content,
+										'post_type'    => $p->post_type,
+										'post_name'    => $p->post_name,
+									);
+									$template_part->post_content = str_replace(
+										$match['ref'],
+										'REFERENCE_' . $reference_id,
+										$template_part->post_content
+									);
+								}
+							}
 							?>
-					<label><input type="checkbox" <?php echo $checked; ?> data-id="<?php echo esc_attr( $template_part->ID ); ?>" onchange="updateBlueprint()" onkeyup="updateBlueprint()" data-post_title="<?php echo esc_attr( $template_part->post_title ); ?>" data-post_name="<?php echo esc_attr( $template_part->post_name ); ?>" data-post_content="<?php echo esc_attr( str_replace( PHP_EOL, '\n', $template_part->post_content ) ); ?>"/> <?php echo esc_html( $template_part->post_title ); ?></label><br/>
+					<label><input type="checkbox" <?php echo $checked; ?> data-id="<?php echo esc_attr( $template_part->ID ); ?>" onchange="updateBlueprint()" onkeyup="updateBlueprint()" data-post_title="<?php echo esc_attr( $template_part->post_title ); ?>" data-post_name="<?php echo esc_attr( $template_part->post_name ); ?>" data-post_content="<?php echo esc_attr( str_replace( PHP_EOL, '\n', $template_part->post_content ) ); ?>" data-references="<?php echo esc_attr( str_replace( PHP_EOL, '\n', json_encode( $references ) ) ); ?>" data-nav-items="<?php echo esc_attr( str_replace( PHP_EOL, '\n', json_encode( $nav_items ) ) ); ?>"/> <?php echo esc_html( $template_part->post_title ); ?></label><br/>
 
 						<?php endforeach; ?>
 			</details>
@@ -550,6 +594,7 @@ class BlueprintExtractor {
 			</form>
 			<script>
 				const originaBlueprint = document.getElementById('blueprint').value;
+				const home_url = '<?php echo esc_js( home_url() ); ?>';
 				function encodeStringAsBase64(str) {
 					return encodeUint8ArrayAsBase64(new TextEncoder().encode(str));
 				}
@@ -720,7 +765,7 @@ class BlueprintExtractor {
 							if ( global_styles && global_styles.checked ) {
 								steps.push( {
 									'step' : 'runPHP',
-									'code' : "<" + "?php require_once 'wordpress/wp-load.php'; $theme = wp_get_theme(); $term = get_term_by( 'slug', $theme->get_stylesheet(), 'wp_theme'); if ( ! $term) { $term = wp_insert_term( $theme->get_stylesheet(), 'wp_theme' ); $term_id = $term['term_id']; } else { $term_id = $term->term_id; } $post_id = wp_insert_post( array( 'post_type' => 'wp_global_styles', 'post_title' => '" + global_styles.dataset.post_title.replace( /'/g, "\\'" ) + "', 'post_name' => '" + global_styles.dataset.post_name.replace( /'/g, "\\'" ) + "', 'post_content' => '" + global_styles.dataset.post_content.replace( /'/g, "\\'" ).replace( /\\n/g, "\n" ) + "', 'post_status' => 'publish' ) ); wp_set_object_terms($post_id, $term_id, 'wp_theme');",
+									'code' : "<" + "?php require_once '/wordpress/wp-load.php'; $theme = wp_get_theme(); $term = get_term_by( 'slug', $theme->get_stylesheet(), 'wp_theme'); if ( ! $term) { $term = wp_insert_term( $theme->get_stylesheet(), 'wp_theme' ); $term_id = $term['term_id']; } else { $term_id = $term->term_id; } $post_id = wp_insert_post( array( 'post_type' => 'wp_global_styles', 'post_title' => '" + global_styles.dataset.post_title.replace( /'/g, "\\'" ) + "', 'post_name' => '" + global_styles.dataset.post_name.replace( /'/g, "\\'" ) + "', 'post_content' => '" + global_styles.dataset.post_content.replace( /'/g, "\\'" ).replace( /\\n/g, "\n" ) + "', 'post_status' => 'publish' ) ); wp_set_object_terms($post_id, $term_id, 'wp_theme');",
 								} );
 							}
 						}
@@ -741,7 +786,7 @@ class BlueprintExtractor {
 							passwords.push( password );
 							steps.push( {
 								'step' : 'runPHP',
-								'code' : "<" + "?php require_once 'wordpress/wp-load.php'; $data = array( 'user_login' => '" + checkbox.dataset.login + "', 'display_name' => '" + checkbox.dataset.name.replace( /'/g, "\\'" ) + "', 'role' => '" + checkbox.dataset.role + "', 'user_pass' => '" + password.replace( /'/g, "\\'" ) + "' ); wp_insert_user( $data ); ?>",
+								'code' : "<" + "?php require_once '/wordpress/wp-load.php'; $data = array( 'user_login' => '" + checkbox.dataset.login + "', 'display_name' => '" + checkbox.dataset.name.replace( /'/g, "\\'" ) + "', 'role' => '" + checkbox.dataset.role + "', 'user_pass' => '" + password.replace( /'/g, "\\'" ) + "' ); wp_insert_user( $data ); ?>",
 							} );
 						}
 					} );
@@ -780,9 +825,13 @@ class BlueprintExtractor {
 					document.querySelectorAll( '#select-pages input[type="checkbox"]' ).forEach( function ( checkbox ) {
 						if ( checkbox.checked ) {
 							pages.push( checkbox.getAttribute('data-id') );
+							let code = "<" + "?php require_once '/wordpress/wp-load.php'; ";
+							code += "$post_content = '" + checkbox.dataset.post_content.replace( /'/g, "\\'" ).replace( /\\n/g, "\n" ) + "';";
+							code += " $post_content = str_replace( '" + home_url + "', home_url(), $post_content );";
+							code += "wp_insert_post( array( 'post_type' => '" + checkbox.dataset.post_type.replace( /'/g, "\\'" ) + "', 'post_title' => '" + checkbox.dataset.post_title.replace( /'/g, "\\'" ) + "', 'post_content' => $post_content, 'post_name' => '" + checkbox.dataset.post_name.replace( /'/g, "\\'" ) + "',  'post_status' => 'publish' ) );",
 							steps.push( {
 								'step' : 'runPHP',
-								'code' : "<" + "?php require_once 'wordpress/wp-load.php'; wp_insert_post( array( 'post_type' => 'page', 'post_title' => '" + checkbox.dataset.post_title.replace( /'/g, "\\'" ) + "', 'post_content' => '" + checkbox.dataset.post_content.replace( /'/g, "\\'" ).replace( /\\n/g, "\n" ) + "', 'post_status' => 'publish' ) );",
+								'code' : code,
 							});
 						}
 					} );
@@ -796,9 +845,31 @@ class BlueprintExtractor {
 					document.querySelectorAll( '#select-template-parts input[type="checkbox"]' ).forEach( function ( checkbox ) {
 						if ( checkbox.checked ) {
 							template_parts.push( checkbox.getAttribute('data-id') );
+							let code = "<" + "?php require_once '/wordpress/wp-load.php'; $theme = wp_get_theme(); $term = get_term_by( 'slug', $theme->get_stylesheet(), 'wp_theme'); if ( ! $term ) { $term = wp_insert_term( $theme->get_stylesheet(), 'wp_theme' ); $term_id = $term['term_id']; } else { $term_id = $term->term_id; } $template_part_content = '" + checkbox.dataset.post_content.replace( /'/g, "\\'" ).replace( /\\n/g, "\n" ) + "'; $nav_items = array(); ";
+							const nav_items = JSON.parse( checkbox.dataset.navItems || '[]' );
+							for ( const nav_item_id in nav_items ) {
+								if ( nav_items.hasOwnProperty( nav_item_id ) ) {
+									const nav_item = nav_items[nav_item_id];
+									code += " $page = get_page_by_path( '" + nav_item[0].replace( /'/g, "\\'" ) + "', OBJECT, '" + nav_item[1] + "' );";
+									code += "$nav_items['NAV_ITEM_" + nav_item_id + "'] = $page ? $page->ID : 0; ";
+								}
+							}
+							const references = JSON.parse( checkbox.dataset.references || '[]' );
+							for ( const reference_id in references ) {
+								if ( references.hasOwnProperty( reference_id ) ) {
+									const reference = references[reference_id];
+									code += " $reference_post_content = str_replace( array_keys( $nav_items ), array_values( $nav_items ), '" + reference.post_content.replace( /'/g, "\\'" ).replace( /\\n/g, "\n" ) + "' );";
+									code += " $reference_post_content = str_replace( '" + home_url + "', home_url(), $reference_post_content );";
+									code += " $reference_id = wp_insert_post( array( 'post_type' => '" + reference.post_type + "', 'post_title' => '" + reference.post_title.replace( /'/g, "\\'" ) + "', 'post_content' => $reference_post_content, 'post_name' => '" + reference.post_name.replace( /'/g, "\\'" ) + "', 'post_status' => 'publish' ) ); wp_set_object_terms($reference_id, $term_id, 'wp_theme');";
+									code += " $template_part_content = str_replace( 'REFERENCE_" + reference_id + "', $reference_id, $template_part_content );";
+								}
+							}
+							code += " $template_part_content = str_replace( '" + home_url + "', home_url(), $template_part_content );";
+
+							code += "$post_id = wp_insert_post( array( 'post_type' => 'wp_template_part', 'post_title' => '" + checkbox.dataset.post_title.replace( /'/g, "\\'" ) + "', 'post_name' => '" + checkbox.dataset.post_name.replace( /'/g, "\\'" ) + "', 'post_content' => $template_part_content, 'post_status' => 'publish' ) ); wp_set_object_terms($post_id, $term_id, 'wp_theme');"
 							steps.push( {
 								'step' : 'runPHP',
-								'code' : "<" + "?php require_once 'wordpress/wp-load.php'; $theme = wp_get_theme(); $term = get_term_by( 'slug', $theme->get_stylesheet(), 'wp_theme'); if ( ! $term) { $term = wp_insert_term( $theme->get_stylesheet(), 'wp_theme' ); $term_id = $term['term_id']; } else { $term_id = $term->term_id; } $post_id = wp_insert_post( array( 'post_type' => 'wp_template_part', 'post_title' => '" + checkbox.dataset.post_title.replace( /'/g, "\\'" ) + "', 'post_name' => '" + checkbox.dataset.post_name.replace( /'/g, "\\'" ) + "', 'post_content' => '" + checkbox.dataset.post_content.replace( /'/g, "\\'" ).replace( /\\n/g, "\n" ) + "', 'post_status' => 'publish' ) ); wp_set_object_terms($post_id, $term_id, 'wp_theme');",
+								'code' : code,
 							} );
 						}
 					} );
@@ -814,7 +885,7 @@ class BlueprintExtractor {
 							templates.push( checkbox.getAttribute('data-id') );
 							steps.push( {
 								'step' : 'runPHP',
-								'code' : "<" + "?php require_once 'wordpress/wp-load.php'; $theme = wp_get_theme(); $term = get_term_by( 'slug', $theme->get_stylesheet(), 'wp_theme'); if ( ! $term) { $term = wp_insert_term( $theme->get_stylesheet(), 'wp_theme' ); $term_id = $term['term_id']; } else { $term_id = $term->term_id; } $post_id = wp_insert_post( array( 'post_type' => 'wp_template', 'post_title' => '" + checkbox.dataset.post_title.replace( /'/g, "\\'" ) + "', 'post_name' => '" + checkbox.dataset.post_name.replace( /'/g, "\\'" ) + "', 'post_content' => '" + checkbox.dataset.post_content.replace( /'/g, "\\'" ).replace( /\\n/g, "\n" ) + "', 'post_status' => 'publish' ) ); wp_set_object_terms($post_id, $term_id, 'wp_theme');",
+								'code' : "<" + "?php require_once '/wordpress/wp-load.php'; $theme = wp_get_theme(); $term = get_term_by( 'slug', $theme->get_stylesheet(), 'wp_theme'); if ( ! $term) { $term = wp_insert_term( $theme->get_stylesheet(), 'wp_theme' ); $term_id = $term['term_id']; } else { $term_id = $term->term_id; } $post_id = wp_insert_post( array( 'post_type' => 'wp_template', 'post_title' => '" + checkbox.dataset.post_title.replace( /'/g, "\\'" ) + "', 'post_name' => '" + checkbox.dataset.post_name.replace( /'/g, "\\'" ) + "', 'post_content' => '" + checkbox.dataset.post_content.replace( /'/g, "\\'" ).replace( /\\n/g, "\n" ) + "', 'post_status' => 'publish' ) ); wp_set_object_terms($post_id, $term_id, 'wp_theme');",
 							} );
 						}
 					} );
