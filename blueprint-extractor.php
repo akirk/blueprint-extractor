@@ -688,6 +688,13 @@ class BlueprintExtractor {
 							} else {
 								localStorage.removeItem( 'blueprint_extractor_additional_options' );
 							}
+							if ( Array.isArray( blueprint.steps[i].options ) ) {
+								if ( ! blueprint.steps[i].options.length ) {
+									continue;
+								}
+							} else if ( ! Object.keys( blueprint.steps[i].options ).length ) {
+								continue;
+							}
 						}
 						if ( blueprint.steps[i].step === 'installTheme' ) {
 
