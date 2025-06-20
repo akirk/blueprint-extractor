@@ -596,7 +596,7 @@ class BlueprintExtractor {
 						if ( checkbox ) {
 							checkbox.checked = true;
 							if ( typeof constants[constantKey] === 'string' ) {
-								checkbox.nextSibling.value = constants[constantKey];
+								checkbox.nextElementSibling.value = constants[constantKey];
 							}
 						} else {
 							const li = document.createElement('li');
@@ -677,8 +677,8 @@ class BlueprintExtractor {
 								if ( checkbox.value ) {
 									if ( checkbox.getAttribute('type') === 'checkbox' ) {
 										additionalOptions[checkbox.value] = checkbox.checked;
-									} else if ( checkbox.nextSibling?.tagName === 'INPUT' ) {
-										additionalOptions[checkbox.value] = checkbox.nextSibling.value;
+									} else if ( checkbox.nextElementSibling?.tagName === 'INPUT' ) {
+										additionalOptions[checkbox.value] = checkbox.nextElementSibling.value;
 									}
 									blueprint.steps[i].options[checkbox.value] = additionalOptions[checkbox.value];
 								}
@@ -687,6 +687,13 @@ class BlueprintExtractor {
 								localStorage.setItem( 'blueprint_extractor_additional_options', JSON.stringify( additionalOptions ) );
 							} else {
 								localStorage.removeItem( 'blueprint_extractor_additional_options' );
+							}
+							if ( Array.isArray( blueprint.steps[i].options ) ) {
+								if ( ! blueprint.steps[i].options.length ) {
+									continue;
+								}
+							} else if ( ! Object.keys( blueprint.steps[i].options ).length ) {
+								continue;
 							}
 						}
 						if ( blueprint.steps[i].step === 'installTheme' ) {
@@ -732,8 +739,8 @@ class BlueprintExtractor {
 						if ( checkbox.value ) {
 							if ( checkbox.getAttribute('type') === 'checkbox' ) {
 								checkbox.checked = true;
-							} else if ( checkbox.nextSibling?.tagName === 'INPUT' ) {
-								constants[checkbox.value] = checkbox.nextSibling.value;
+							} else if ( checkbox.nextElementSibling?.tagName === 'INPUT' ) {
+								constants[checkbox.value] = checkbox.nextElementSibling.value;
 							}
 						}
 					} );
@@ -896,8 +903,8 @@ class BlueprintExtractor {
 						if ( constants[constantName] ) {
 							const checkbox = document.querySelector( '#select-constants input[name=key][value="' + constantName + '"]' );
 							if ( checkbox ) {
-								if ( checkbox.nextSibling?.tagName === 'INPUT' ) {
-									checkbox.nextSibling.value = constants[constantName];
+								if ( checkbox.nextElementSibling?.tagName === 'INPUT' ) {
+									checkbox.nextElementSibling.value = constants[constantName];
 								} else {
 									checkbox.checked = true;
 								}
