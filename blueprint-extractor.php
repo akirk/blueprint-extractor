@@ -1007,12 +1007,6 @@ class BlueprintExtractor {
 						event.target.textContent = 'Copy the blueprint to clipboard';
 					}, 2000);
 				});
-				document.getElementById('submit-blueprint').addEventListener('click', function (event) {
-					event.preventDefault();
-					const blueprint = document.getElementById('blueprint').value;
-
-
-				});
 				document.getElementById('clear-local-storage').addEventListener('click', function (event) {
 					event.preventDefault();
 					localStorage.removeItem( 'blueprint_extractor_additional_options' );
