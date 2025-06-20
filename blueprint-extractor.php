@@ -449,8 +449,8 @@ class BlueprintExtractor {
 
 									$references[ $reference_id ] = array(
 										'id'           => $match['ref'],
-										'post_title'   => str_replace( '"', '\\"', $p->post_title ),
-										'post_content' => str_replace( '"', '\\"', $p->post_content ),
+										'post_title'   => str_replace( '&quot;', '\\&quot;', $p->post_title ),
+										'post_content' => str_replace( '&quot;', '\\&quot;', $p->post_content ),
 										'post_type'    => $p->post_type,
 										'post_name'    => $p->post_name,
 									);
