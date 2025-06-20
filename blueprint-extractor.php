@@ -462,7 +462,7 @@ class BlueprintExtractor {
 								}
 							}
 							?>
-					<label><input type="checkbox" <?php echo $checked; ?> data-id="<?php echo esc_attr( $template_part->ID ); ?>" onchange="updateBlueprint()" onkeyup="updateBlueprint()" data-post_title="<?php echo esc_attr( $template_part->post_title ); ?>" data-post_name="<?php echo esc_attr( $template_part->post_name ); ?>" data-post_content="<?php echo esc_attr( str_replace( PHP_EOL, '\n', $template_part->post_content ) ); ?>" data-references="<?php echo esc_attr( str_replace( PHP_EOL, '\n', json_encode( $references ) ) ); ?>" data-nav-items="<?php echo esc_attr( str_replace( PHP_EOL, '\n', json_encode( $nav_items ) ) ); ?>"/> <?php echo esc_html( $template_part->post_title ); ?></label><br/>
+					<label><input type="checkbox" <?php echo $checked; ?> data-id="<?php echo esc_attr( $template_part->ID ); ?>" onchange="updateBlueprint()" onkeyup="updateBlueprint()" data-post_title="<?php echo esc_attr( $template_part->post_title ); ?>" data-post_name="<?php echo esc_attr( $template_part->post_name ); ?>" data-post_content="<?php echo esc_attr( str_replace( PHP_EOL, '\n', $template_part->post_content ) ); ?>" data-references="<?php echo esc_attr( str_replace( array( PHP_EOL, '"' ), array( '\n', '\\"'), wp_json_encode( $references ) ) ); ?>" data-nav-items="<?php echo esc_attr( str_replace( array( PHP_EOL, '"' ), array( '\n', '\\"'), wp_json_encode( $nav_items ) ) ); ?>"/> <?php echo esc_html( $template_part->post_title ); ?></label><br/>
 
 						<?php endforeach; ?>
 			</details>
