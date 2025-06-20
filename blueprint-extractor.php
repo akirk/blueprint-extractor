@@ -504,9 +504,22 @@ class BlueprintExtractor {
 			</details>
 
 			<details id="select-theme">
+				<?php $theme = wp_get_theme(); ?>
 				<summary>Theme</summary>
 				<label><input type="radio" name="ignore_theme" id="ignore-theme" onclick="updateBlueprint()"> Use Default Theme</label><br>
-				<label><input type="radio" name="ignore_theme" checked onclick="updateBlueprint()"> Use Current Theme: <?php echo esc_html( wp_get_theme() ); ?></label><br>
+				<label><input type="radio" name="ignore_theme" checked onclick="updateBlueprint()"> Use Current Theme: <?php echo esc_html( $theme ); ?></label><br>
+				<?php
+				$global_styles = get_posts( array(
+					'post_type'   => 'wp_global_styles',
+					'taxonomy'    => 'wp_theme',
+					'numberposts' => 1,
+					'term'        => wp_get_theme()->get_stylesheet(),
+				) );
+
+				if ( $global_styles ) :
+					?>
+					<input type="checkbox" <?php echo $checked; ?> id="global-styles" data-post_content="<?php echo esc_attr( str_replace( PHP_EOL, '\n', $global_styles[0]->post_content ) ); ?>" data-post_name="<?php echo esc_attr( $global_styles[0]->post_name ); ?>" data-post_title="<?php echo esc_attr( $global_styles[0]->post_title ); ?>" /> <label for="global-styles">Include Global Styles</label><br>
+				<?php endif; ?>
 			</details>
 			<details id="select-users">
 				<summary>Users <span class="checked"></span></summary>
@@ -514,7 +527,7 @@ class BlueprintExtractor {
 							<?php foreach ( get_users() as $u ) : ?>
 								<?php if ( 'admin' !== $u->user_login ) : ?>
 							<li>
-								<input type="checkbox" <?php echo $checked; ?>  data-login="<?php echo esc_attr( $u->user_login ); ?>" data-name="<?php echo esc_attr( $u->display_name ); ?>" data-role="<?php echo esc_attr( $u->roles[0] ); ?>" onchange="updateBlueprint()" id="user_<?php echo esc_attr( $u->user_login ); ?>" /> <label for="user_<?php echo esc_attr( $u->user_login ); ?>"><?php echo esc_html( $u->display_name ); ?></label>
+								<input type="checkbox" <?php echo $checked; ?> data-login="<?php echo esc_attr( $u->user_login ); ?>" data-name="<?php echo esc_attr( $u->display_name ); ?>" data-role="<?php echo esc_attr( $u->roles[0] ); ?>" onchange="updateBlueprint()" id="user_<?php echo esc_attr( $u->user_login ); ?>" /> <label for="user_<?php echo esc_attr( $u->user_login ); ?>"><?php echo esc_html( $u->display_name ); ?></label>
 								<label class="password">Password: <input type="text" value="" placeholder="Set a password in the blueprint" onchange="updateBlueprint()"/></label><br/>
 							</li>
 						<?php endif; ?>
@@ -703,6 +716,13 @@ class BlueprintExtractor {
 								continue;
 							}
 							localStorage.removeItem( 'blueprint_extractor_ignore_theme' );
+							const global_styles = document.getElementById('global-styles');
+							if ( global_styles && global_styles.checked ) {
+								steps.push( {
+									'step' : 'runPHP',
+									'code' : "<" + "?php require_once 'wordpress/wp-load.php'; $theme = wp_get_theme(); $term = get_term_by( 'slug', $theme->get_stylesheet(), 'wp_theme'); if ( ! $term) { $term = wp_insert_term( $theme->get_stylesheet(), 'wp_theme' ); $term_id = $term['term_id']; } else { $term_id = $term->term_id; } $post_id = wp_insert_post( array( 'post_type' => 'wp_global_styles', 'post_title' => '" + global_styles.dataset.post_title.replace( /'/g, "\\'" ) + "', 'post_name' => '" + global_styles.dataset.post_name.replace( /'/g, "\\'" ) + "', 'post_content' => '" + global_styles.dataset.post_content.replace( /'/g, "\\'" ).replace( /\\n/g, "\n" ) + "', 'post_status' => 'publish' ) ); wp_set_object_terms($post_id, $term_id, 'wp_theme');",
+								} );
+							}
 						}
 						steps.push( blueprint.steps[i] );
 					}
