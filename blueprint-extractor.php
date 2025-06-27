@@ -593,6 +593,19 @@ class BlueprintExtractor {
 			<textarea id="blueprint" name="blueprint" cols="120" rows="50" style="font-family: monospace"><?php echo esc_html( wp_json_encode( $blueprint, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT ) ); ?></textarea>
 			</form>
 			<script>
+
+				function getFromLocalStorage( key, defaultValue ) {
+					if ( location.hostname === 'playground.wordpress.net' ) {
+						// When inside Playground, we don't want to share localStorage between different blueprints.
+						return defaultValue;
+					}
+					const value = localStorage.getItem( key );
+					if ( null === value ) {
+						return defaultValue;
+					}
+					return value;
+				}
+
 				const originaBlueprint = document.getElementById('blueprint').value;
 				const home_url = '<?php echo esc_js( home_url() ); ?>';
 				function encodeStringAsBase64(str) {
@@ -605,7 +618,7 @@ class BlueprintExtractor {
 				}
 
 				let blueprint = JSON.parse( originaBlueprint );
-				const ignorePlugins = JSON.parse( localStorage.getItem( 'blueprint_extractor_ignore_plugins' ) || '[]' );
+				const ignorePlugins = JSON.parse( getFromLocalStorage( 'blueprint_extractor_ignore_plugins' ) || '[]' );
 				for ( let i = 0; i < blueprint.steps.length; i++ ) {
 					if ( blueprint.steps[i].step === 'installPlugin' &&  ignorePlugins.includes( blueprint.steps[i].name ) ) {
 						document.getElementById('use_plugin_' + i).checked = false;
@@ -614,12 +627,12 @@ class BlueprintExtractor {
 						} );
 						document.getElementById('use_plugin_' + i).closest('li').classList.remove( 'checked' );
 					}
-					if ( blueprint.steps[i].step === 'installTheme' && localStorage.getItem( 'blueprint_extractor_ignore_theme' ) ) {
+					if ( blueprint.steps[i].step === 'installTheme' && getFromLocalStorage( 'blueprint_extractor_ignore_theme' ) ) {
 						document.getElementById('ignore-theme').checked = true;
 						document.getElementById('select-theme').open = true;
 					}
 				}
-				let additionalOptions = JSON.parse( localStorage.getItem( 'blueprint_extractor_additional_options' ) || '<?php echo wp_json_encode( get_option( 'blueprint_extractor_initial_options', new stdClass() ) ); ?>' );
+				let additionalOptions = JSON.parse( getFromLocalStorage( 'blueprint_extractor_additional_options' ) || '<?php echo wp_json_encode( get_option( 'blueprint_extractor_initial_options', new stdClass() ) ); ?>' );
 				const additionalOptionsList = document.getElementById('additionaloptions');
 				for ( const optionKey in additionalOptions ) {
 					if ( additionalOptions.hasOwnProperty( optionKey ) ) {
@@ -640,13 +653,13 @@ class BlueprintExtractor {
 
 					}
 				}
-				const users = JSON.parse( localStorage.getItem( 'blueprint_extractor_users' ) || '[]' );
+				const users = JSON.parse( getFromLocalStorage( 'blueprint_extractor_users' ) || '[]' );
 				document.querySelectorAll( '#select-users input[type="checkbox"]' ).forEach( function ( checkbox ) {
 					if ( users.includes( checkbox.getAttribute('data-login') ) ) {
 						checkbox.checked = true;
 					}
 				} );
-				const constants = JSON.parse( localStorage.getItem( 'blueprint_extractor_constants' ) || '<?php echo wp_json_encode( get_option( 'blueprint_extractor_initial_constants', new stdClass() ) ); ?>' );
+				const constants = JSON.parse( getFromLocalStorage( 'blueprint_extractor_constants' ) || '<?php echo wp_json_encode( get_option( 'blueprint_extractor_initial_constants', new stdClass() ) ); ?>' );
 				const constantsList = document.getElementById('additionalconstants');
 				for ( const constantKey in constants ) {
 					if ( constants.hasOwnProperty( constantKey ) ) {
@@ -674,25 +687,25 @@ class BlueprintExtractor {
 						}
 					}
 				}
-				const pages = JSON.parse( localStorage.getItem( 'blueprint_extractor_pages' ) || '[]' );
+				const pages = JSON.parse( getFromLocalStorage( 'blueprint_extractor_pages' ) || '[]' );
 				document.querySelectorAll( '#select-pages input[type="checkbox"]' ).forEach( function ( checkbox ) {
 					if ( pages.includes( checkbox.getAttribute('data-id') ) ) {
 						checkbox.checked = true;
 					}
 				} );
-				const templates = JSON.parse( localStorage.getItem( 'blueprint_extractor_templates' ) || '[]' );
+				const templates = JSON.parse( getFromLocalStorage( 'blueprint_extractor_templates' ) || '[]' );
 				document.querySelectorAll( '#select-templates input[type="checkbox"]' ).forEach( function ( checkbox ) {
 					if ( templates.includes( checkbox.getAttribute('data-id') ) ) {
 						checkbox.checked = true;
 					}
 				} );
-				const template_parts = JSON.parse( localStorage.getItem( 'blueprint_extractor_template_parts' ) || '[]' );
+				const template_parts = JSON.parse( getFromLocalStorage( 'blueprint_extractor_template_parts' ) || '[]' );
 				document.querySelectorAll( '#select-template-parts input[type="checkbox"]' ).forEach( function ( checkbox ) {
 					if ( template_parts.includes( checkbox.getAttribute('data-id') ) ) {
 						checkbox.checked = true;
 					}
 				} );
-				const zipUrl = localStorage.getItem( 'blueprint_extractor_zip_url' );
+				const zipUrl = getFromLocalStorage( 'blueprint_extractor_zip_url' );
 				if ( zipUrl ) {
 					document.getElementById('zip-url').value = zipUrl;
 				}
