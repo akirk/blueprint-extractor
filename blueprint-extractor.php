@@ -334,6 +334,16 @@ class BlueprintExtractor {
 			$name .= ' V2';
 		}
 
+		$submit_url = 'https://blueprintlibrary.wordpress.com/';
+		if ( defined( 'PLAYGROUND_EXTRACTOR_BLUEPRINT_SUBMIT_URL' ) ) {
+			$submit_url = PLAYGROUND_EXTRACTOR_BLUEPRINT_SUBMIT_URL;
+		}
+
+		$submit_button_text = 'Submit the Blueprint to WordPress.com';
+		if ( defined( 'PLAYGROUND_EXTRACTOR_BLUEPRINT_SUBMIT_BUTTON_TEXT' ) ) {
+			$submit_button_text = PLAYGROUND_EXTRACTOR_BLUEPRINT_SUBMIT_BUTTON_TEXT;
+		}
+
 		?><div class="wrap">
 		<h1>Blueprint</h1>
 			<style>
@@ -378,7 +388,7 @@ class BlueprintExtractor {
 					color: #fff;
 				}
 			</style>
-			<form target="_blank" action="https://blueprintlibrary.wordpress.com/" method="post">
+			<form target="_blank" action="<?php echo esc_url( $submit_url ); ?>" method="post">
 			Name: <input type="text" id="blueprint-name" name="name" value="<?php echo esc_attr( $name ); ?>" class="regular-text" /><br>
 			Landing Page: <input type="text" id="landing-page" value="<?php echo esc_attr( $blueprint['landingPage'] ); ?>" onchange="updateBlueprint()" onkeyup="updateBlueprint()" /><br>
 
@@ -585,7 +595,9 @@ class BlueprintExtractor {
 			<br/>
 			<br/>
 			<button id="copy-blueprint" class="button">Copy the blueprint to clipboard</button>
-			<button class="button">Submit the blueprint to WordPress.com</button>
+			<button class="button" onclick="submitBlueprint()">
+				<?php echo esc_html( $submit_button_text ); ?>
+			</button>
 			<button id="clear-local-storage" class="button button-destructive" style="margin-left: 10em">Reset Previous Selections</button>
 			<br>
 			<br>
