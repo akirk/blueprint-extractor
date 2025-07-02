@@ -195,6 +195,10 @@ class BlueprintExtractor {
 		unset( $constants['DB_CHARSET'] );
 		unset( $constants['DB_COLLATE'] );
 
+		// Unset Blueprint Extractor constants.
+		unset( $constants['BLUEPRINT_EXTRACTOR_SUBMIT_URL'] );
+		unset( $constants['BLUEPRINT_EXTRACTOR_SUBMIT_BUTTON_TEXT'] );
+
 		return $constants;
 	}
 
@@ -335,13 +339,13 @@ class BlueprintExtractor {
 		}
 
 		$submit_url = 'https://blueprintlibrary.wordpress.com/';
-		if ( defined( 'PLAYGROUND_EXTRACTOR_BLUEPRINT_SUBMIT_URL' ) ) {
-			$submit_url = PLAYGROUND_EXTRACTOR_BLUEPRINT_SUBMIT_URL;
+		if ( defined( 'BLUEPRINT_EXTRACTOR_SUBMIT_URL' ) ) {
+			$submit_url = BLUEPRINT_EXTRACTOR_SUBMIT_URL;
 		}
 
 		$submit_button_text = 'Submit the Blueprint to WordPress.com';
-		if ( defined( 'PLAYGROUND_EXTRACTOR_BLUEPRINT_SUBMIT_BUTTON_TEXT' ) ) {
-			$submit_button_text = PLAYGROUND_EXTRACTOR_BLUEPRINT_SUBMIT_BUTTON_TEXT;
+		if ( defined( 'BLUEPRINT_EXTRACTOR_SUBMIT_BUTTON_TEXT' ) ) {
+			$submit_button_text = BLUEPRINT_EXTRACTOR_SUBMIT_BUTTON_TEXT;
 		}
 
 		?><div class="wrap">
