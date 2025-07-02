@@ -599,7 +599,7 @@ class BlueprintExtractor {
 			<br/>
 			<br/>
 			<button id="copy-blueprint" class="button">Copy the blueprint to clipboard</button>
-			<button class="button" onclick="submitBlueprint()">
+			<button class="button">
 				<?php echo esc_html( $submit_button_text ); ?>
 			</button>
 			<button id="clear-local-storage" class="button button-destructive" style="margin-left: 10em">Reset Previous Selections</button>
