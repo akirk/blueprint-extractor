@@ -281,7 +281,7 @@ class BlueprintExtractor {
 		if ( ! in_array( $theme->get( 'TextDomain' ), $ignore ) && $this->check_theme_exists( $theme->get( 'TextDomain' ) ) && ! $ignore_theme ) {
 			$steps[] = array(
 				'step'         => 'installTheme',
-				'themeZipFile' => array(
+				'themeData' => array(
 					'resource' => 'wordpress.org/themes',
 					'slug'     => $theme->get( 'TextDomain' ),
 				),
@@ -314,10 +314,6 @@ class BlueprintExtractor {
 			'preferredVersions'   => array(
 				'php' => substr( phpversion(), 0, 3 ),
 				'wp'  => $wp_version,
-			),
-			'phpExtensionBundles' => array( 'kitchen-sink' ),
-			'features'            => array(
-				'networking' => true,
 			),
 			'login'               => true,
 			'steps'               => $steps,
