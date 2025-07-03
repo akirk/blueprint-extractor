@@ -281,7 +281,7 @@ class BlueprintExtractor {
 		if ( ! in_array( $theme->get( 'TextDomain' ), $ignore ) && $this->check_theme_exists( $theme->get( 'TextDomain' ) ) && ! $ignore_theme ) {
 			$steps[] = array(
 				'step'         => 'installTheme',
-				'themeZipFile' => array(
+				'themeData' => array(
 					'resource' => 'wordpress.org/themes',
 					'slug'     => $theme->get( 'TextDomain' ),
 				),
