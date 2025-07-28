@@ -863,7 +863,7 @@ class BlueprintExtractor {
 							code += "$post_content = '" + checkbox.dataset.post_content.replace( /'/g, "\\'" ).replace( /\\n/g, "\n" ) + "';";
 							code += " $post_content = str_replace( '" + home_url + "', home_url(), $post_content );";
 							const post_obj = "'post_type' => 'wp_template_part', 'post_title' => '" + checkbox.dataset.post_title.replace( /'/g, "\\'" ) + "', 'post_name' => '" + checkbox.dataset.post_name.replace( /'/g, "\\'" ) + "'";
-							code += ' $p = get_post( array( ' + post_obj + ' ) ); if ( $p ) { wp_update_post( array( "ID" => $p->ID, ' + post_obj + ", 'post_content' => $template_part_content, 'post_status' => '" + checkbox.dataset.post_status.replace( /'/g, "\\'" ) + "' ) ); } else { ";
+							code += ' $p = get_post( array( ' + post_obj + ' ) ); if ( $p ) { wp_update_post( array( \'ID\' => $p->ID, ' + post_obj + ", 'post_content' => $post_content, 'post_status' => '" + checkbox.dataset.post_status.replace( /'/g, "\\'" ) + "' ) ); } else { ";
 							code += "$post_id = wp_insert_post( array( " + post_obj + ", 'post_content' => $post_content, 'post_status' => '" + checkbox.dataset.post_status.replace( /'/g, "\\'" ) + "' ) ); }";
 							if ( checkbox.dataset.post_type === 'page' && page_on_front === checkbox.getAttribute('data-id') ) {
 								code += " update_option( 'show_on_front', 'page' ); update_option( 'page_on_front', $post_id );";
@@ -906,7 +906,7 @@ class BlueprintExtractor {
 							}
 							code += " $template_part_content = str_replace( '" + home_url + "', home_url(), $template_part_content );";
 							const post_obj = "'post_type' => 'wp_template_part', 'post_title' => '" + checkbox.dataset.post_title.replace( /'/g, "\\'" ) + "', 'post_name' => '" + checkbox.dataset.post_name.replace( /'/g, "\\'" ) + "'";
-							code += ' $p = get_post( array( ' + post_obj + ' ) ); if ( $p ) { wp_update_post( array( "ID" => $p->ID, ' + post_obj + ", 'post_content' => $template_part_content, 'post_status' => 'publish' ) ); } else { ";
+							code += ' $p = get_post( array( ' + post_obj + ' ) ); if ( $p ) { wp_update_post( array( \'ID\' => $p->ID, ' + post_obj + ", 'post_content' => $template_part_content, 'post_status' => 'publish' ) ); } else { ";
 							code += "$post_id = wp_insert_post( array( " + post_obj + ", 'post_content' => $template_part_content, 'post_status' => 'publish' ) ); wp_set_object_terms($post_id, $term_id, 'wp_theme'); }"
 							steps.push( {
 								'step' : 'runPHP',
@@ -927,7 +927,7 @@ class BlueprintExtractor {
 							let code = "<" + "?php require_once '/wordpress/wp-load.php'; $theme = wp_get_theme(); $term = get_term_by( 'slug', $theme->get_stylesheet(), 'wp_theme'); if ( ! $term ) { $term = wp_insert_term( $theme->get_stylesheet(), 'wp_theme' ); $term_id = $term['term_id']; } else { $term_id = $term->term_id; } $template_content = '" + checkbox.dataset.post_content.replace( /'/g, "\\'" ).replace( /\\n/g, "\n" ) + "';";
 							code += " $template_content = str_replace( '" + home_url + "', home_url(), $template_content );";
 							const post_obj = "'post_type' => 'wp_template', 'post_title' => '" + checkbox.dataset.post_title.replace( /'/g, "\\'" ) + "', 'post_name' => '" + checkbox.dataset.post_name.replace( /'/g, "\\'" ) + "'";
-							code += ' $p = get_post( array( ' + post_obj + ' ) ); if ( $p ) { wp_update_post( array( "ID" => $p->ID, ' + post_obj + ", 'post_content' => $template_content, 'post_status' => 'publish' ) ); } else { ";
+							code += ' $p = get_post( array( ' + post_obj + ' ) ); if ( $p ) { wp_update_post( array( \'ID\' => $p->ID, ' + post_obj + ", 'post_content' => $template_content, 'post_status' => 'publish' ) ); } else { ";
 							code += "$post_id = wp_insert_post( array( " + post_obj + ", 'post_content' => $template_content, 'post_status' => 'publish' ) ); wp_set_object_terms($post_id, $term_id, 'wp_theme'); }"
 
 							steps.push( {
