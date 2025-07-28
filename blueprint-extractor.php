@@ -303,8 +303,9 @@ class BlueprintExtractor {
 		$checked = get_option( 'blueprint_extractor_default_checked' ) ? ' checked' : '';
 		$name = get_option( 'blueprint_extractor_name', get_bloginfo( 'name' ) );
 		$autoselected = array();
-		if ( get_option( 'page_on_front' ) && 'page' == get_option( 'show_on_front' ) ) {
-			$autoselected[ get_option( 'page_on_front' ) ] = true;
+		$page_on_front = get_option( 'page_on_front' );
+		if ( $page_on_front && 'page' == get_option( 'show_on_front' ) ) {
+			$autoselected[ $page_on_front ] = true;
 		}
 
 		if ( preg_match( '/\d+$/', $name, $m ) ) {
@@ -376,7 +377,7 @@ class BlueprintExtractor {
 			<details id="post-types">
 				<summary>Post Types <span class="checked"></span></summary>
 				<?php foreach ( get_post_types( array(), 'objects' ) as $_post_type ) :
-					if ( in_array( $_post_type->name, array( 'attachment', 'revision', 'nav_menu_item', 'wp_navigation', 'wp_template', 'wp_template_part' ) ) ) {
+					if ( in_array( $_post_type->name, array( 'attachment', 'revision', 'nav_menu_item', 'wp_navigation', 'wp_template', 'wp_template_part', 'wp_global_styles' ) ) ) {
 						continue;
 					}
 					$posts = get_posts( array( 'post_type' => $_post_type->name, 'numberposts' => -1 ) );
@@ -393,7 +394,13 @@ class BlueprintExtractor {
 								$_checked = ' checked';
 							}
 							?>
-						<label><input type="checkbox" <?php echo $_checked; ?> data-id="<?php echo esc_attr( $_post->ID ); ?>" onchange="updateBlueprint()" onkeyup="updateBlueprint()" data-post_name="<?php echo esc_attr( $_post->post_name ); ?>" data-post_type="<?php echo esc_attr( $_post->post_type ); ?>" data-post_status="<?php echo esc_attr( $_post->post_status ); ?>" data-post_title="<?php echo esc_attr( $_post->post_title ); ?>" data-post_content="<?php echo esc_attr( str_replace( PHP_EOL, '\n', $_post->post_content ) ); ?>" /> <?php echo esc_html( $_post->post_title ); ?></label><br/>
+						<label><input type="checkbox" <?php echo $_checked; ?> data-id="<?php echo esc_attr( $_post->ID ); ?>" onchange="updateBlueprint()" onkeyup="updateBlueprint()" data-post_name="<?php echo esc_attr( $_post->post_name ); ?>" data-post_type="<?php echo esc_attr( $_post->post_type ); ?>" data-post_status="<?php echo esc_attr( $_post->post_status ); ?>" data-post_title="<?php echo esc_attr( $_post->post_title ); ?>" data-post_content="<?php echo esc_attr( str_replace( PHP_EOL, '\n', $_post->post_content ) ); ?>" /> <?php echo esc_html( $_post->post_title ); ?></label>
+						<?php
+						if ( $page_on_front && 'page' === $_post_type->name ) {
+							?><input type="radio" name="page_on_front" value="<?php echo esc_attr( $_post->ID ); ?>" <?php checked( $page_on_front, $_post->ID ); ?> onchange="updateBlueprint()" onkeyup="updateBlueprint()" /> Set as Front Page<?php
+						}
+						?>
+						<br/>
 					<?php endforeach; ?>
 				</details>
 				<?php endforeach; ?>
@@ -748,6 +755,12 @@ class BlueprintExtractor {
 						}
 						if ( blueprint.steps[i].step === 'setSiteOptions' ) {
 							additionalOptions = {};
+							document.querySelectorAll( 'input[name=page_on_front]' ).forEach( function ( input ) {
+								if ( input.checked ) {
+									additionalOptions['page_on_front'] = input.value;
+									blueprint.steps[i].options['page_on_front'] = input.value;
+								}
+							} );
 							document.querySelectorAll( '#select-options input[name=key]' ).forEach( function ( checkbox ) {
 								if ( checkbox.value ) {
 									if ( checkbox.getAttribute('type') === 'checkbox' ) {
