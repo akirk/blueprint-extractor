@@ -740,6 +740,13 @@ class BlueprintExtractor {
 					}
 					const includeBlueprintExtractor = document.getElementById('include-blueprint-extractor').checked;
 					const steps = [], plugins = [], ignore_plugins = [];
+					let page_on_front = null;
+					document.querySelectorAll( 'input[name=page_on_front]' ).forEach( function ( input ) {
+						if ( input.checked ) {
+							page_on_front = input.value;
+						}
+					} );
+
 					for ( let i = 0; i < blueprint.steps.length; i++ ) {
 						if ( blueprint.steps[i].step === 'installPlugin' ) {
 						if ( ! document.getElementById('use_plugin_' + i).checked ) {
@@ -755,12 +762,6 @@ class BlueprintExtractor {
 						}
 						if ( blueprint.steps[i].step === 'setSiteOptions' ) {
 							additionalOptions = {};
-							document.querySelectorAll( 'input[name=page_on_front]' ).forEach( function ( input ) {
-								if ( input.checked ) {
-									additionalOptions['page_on_front'] = input.value;
-									blueprint.steps[i].options['page_on_front'] = input.value;
-								}
-							} );
 							document.querySelectorAll( '#select-options input[name=key]' ).forEach( function ( checkbox ) {
 								if ( checkbox.value ) {
 									if ( checkbox.getAttribute('type') === 'checkbox' ) {
@@ -863,7 +864,10 @@ class BlueprintExtractor {
 							code += " $post_content = str_replace( '" + home_url + "', home_url(), $post_content );";
 							const post_obj = "'post_type' => 'wp_template_part', 'post_title' => '" + checkbox.dataset.post_title.replace( /'/g, "\\'" ) + "', 'post_name' => '" + checkbox.dataset.post_name.replace( /'/g, "\\'" ) + "'";
 							code += ' $p = get_post( array( ' + post_obj + ' ) ); if ( $p ) { wp_update_post( array( "ID" => $p->ID, ' + post_obj + ", 'post_content' => $template_part_content, 'post_status' => '" + checkbox.dataset.post_status.replace( /'/g, "\\'" ) + "' ) ); } else { ";
-							code += "$post_id = wp_insert_post( array( " + post_obj + ", 'post_content' => $post_content, 'post_status' => '" + checkbox.dataset.post_status.replace( /'/g, "\\'" ) + "' ) ); }"
+							code += "$post_id = wp_insert_post( array( " + post_obj + ", 'post_content' => $post_content, 'post_status' => '" + checkbox.dataset.post_status.replace( /'/g, "\\'" ) + "' ) ); }";
+							if ( checkbox.dataset.post_type === 'page' && page_on_front === checkbox.getAttribute('data-id') ) {
+								code += " update_option( 'show_on_front', 'page' ); update_option( 'page_on_front', $post_id );";
+							}
 							steps.push( {
 								'step' : 'runPHP',
 								'code' : code,
