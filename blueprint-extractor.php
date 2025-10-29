@@ -173,6 +173,7 @@ class BlueprintExtractor {
 		// Unset Blueprint Extractor constants.
 		unset( $constants['BLUEPRINT_EXTRACTOR_SUBMIT_URL'] );
 		unset( $constants['BLUEPRINT_EXTRACTOR_SUBMIT_BUTTON_TEXT'] );
+		unset( $constants['BLUEPRINT_EXTRACTOR_SUBMIT_NONCE'] );
 
 		return $constants;
 	}
@@ -322,6 +323,11 @@ class BlueprintExtractor {
 		$submit_button_text = 'Submit the Blueprint to WordPress.com';
 		if ( defined( 'BLUEPRINT_EXTRACTOR_SUBMIT_BUTTON_TEXT' ) ) {
 			$submit_button_text = BLUEPRINT_EXTRACTOR_SUBMIT_BUTTON_TEXT;
+		}
+
+		$submit_nonce = '';
+		if ( defined( 'BLUEPRINT_EXTRACTOR_SUBMIT_NONCE' ) ) {
+			$submit_nonce = BLUEPRINT_EXTRACTOR_SUBMIT_NONCE;
 		}
 
 		?><div class="wrap">
@@ -614,6 +620,9 @@ class BlueprintExtractor {
 			<br>
 
 			<textarea id="blueprint" name="blueprint" cols="120" rows="50" style="font-family: monospace"><?php echo esc_html( wp_json_encode( $blueprint, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT ) ); ?></textarea>
+			<?php if ( $submit_nonce ) : ?>
+				<input type="hidden" name="nonce" value="<?php echo esc_attr( $submit_nonce ); ?>" />
+			<?php endif; ?>
 			</form>
 			<script>
 
