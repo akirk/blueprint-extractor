@@ -4,6 +4,7 @@
  * Description: Generate a blueprint for the current install.
  * Version: 1.0
  * Author: Alex Kirk
+ * Author URI: https://alex.kirk.at/
  */
 
 namespace BlueprintExtractor;
