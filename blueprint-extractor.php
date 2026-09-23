@@ -1238,6 +1238,10 @@ class BlueprintExtractor {
 	}
 
 	public function add_admin_bar_button() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
 		global $wp_admin_bar;
 		$wp_admin_bar->add_menu( array(
 			'id'    => 'blueprint-extractor',
